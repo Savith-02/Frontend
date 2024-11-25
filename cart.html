@@ -51,59 +51,64 @@
     </footer>
 
     <script>
-      // Sample cart data (this would usually be dynamically populated from local storage or a backend)
-      //   let cart = [
-      //     { id: 1, name: "Product 1", price: 10.0, quantity: 2 },
-      //     { id: 2, name: "Product 2", price: 15.0, quantity: 1 },
-      //   ];
-
       // Function to render the cart
       function renderCart() {
         const cartTableBody = document.querySelector("#cart-table tbody");
         cartTableBody.innerHTML = "";
         let totalPrice = 0;
         // const user_id = localStorage.getItem("user_id");
-        const user_id = 1;
+        // const user_id = 1;
+        // fetch(`http://localhost:8080/api/cart/${user_id}/items`, {
+        //   method: "GET",
+        // })
         let cart = [];
-        fetch(`http://localhost:8080/api/cart/${user_id}/items`, {
-          method: "GET",
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            console.log(data);
-            cart = data;
-            cart.forEach((item) => {
-              console.log(item);
-              const row = document.createElement("tr");
-              const totalItemPrice = item.price * item.quantity;
-              totalPrice += totalItemPrice;
-              console.log(item);
-              row.innerHTML = `
-                        <td>${item.productName}</td>
-                        <td>
-                            <input type="number" value="${
-                              item.quantity
-                            }" min="0" id="quantity-${
-                item.id
-              }" onchange="updateQuantity(${item.id})">
-                        </td>
-                        <td>Rs.${item.price.toFixed(2)}</td>
-                        <td>Rs.${totalItemPrice.toFixed(2)}</td>
-                        <td><button onclick="removeFromCart(${
-                          item.id
-                        })">Remove</button></td>
-                    `;
-              cartTableBody.appendChild(row);
+        const cartData = localStorage.getItem("cart");
+        const user_id = localStorage.getItem("user_id");
+        if (cartData) {
+          // console.log("cartData", cartData);
+          if (cartData) {
+            cart = JSON.parse(cartData);
+            console.log(cart);
+          } else {
+            console.error("No cart data found in localStorage.");
+          }
+          console.log("cartLength", cart.length);
+          cart.forEach((item) => {
+            // console.log("here");
+            // console.log(item);
+            const row = document.createElement("tr");
+            productData = item.product;
+            const totalItemPrice = productData.price * productData.quantity;
+            totalPrice += totalItemPrice;
+            row.innerHTML = `
+                          <td>${productData.name}</td>
+                          <td>
+                              <input type="number" value="${
+                                item.quantity
+                              }" min="0" id="quantity-${
+              productData.id
+            }" onchange="updateQuantity(${productData.id})">
+                          </td>
+                          <td>Rs.${productData.price.toFixed(2)}</td>
+                          <td>Rs.${totalItemPrice.toFixed(2)}</td>
+                          <td><button onclick="removeFromCart(${
+                            productData.id
+                          })">Remove</button></td>
+                      `;
+            cartTableBody.appendChild(row);
 
-              document.getElementById(
-                "total-price"
-              ).textContent = `Total: Rs. ${totalPrice.toFixed(2)}`;
-            });
-          })
-          .catch((error) => {
-            console.error("Error fetching cart items:", error);
-            alert("Failed to fetch cart items. Please try again!");
+            document.getElementById(
+              "total-price"
+            ).textContent = `Total: Rs. ${totalPrice.toFixed(2)}`;
           });
+        }
+        // else {
+        //   const user_id = 1;
+        //   fetch(`http://localhost:8080/api/cart/${user_id}/items`, {
+        //     method: "GET",
+        //   });
+        // }
+
         fetch(`http://localhost:8080/api/cart/userId/${user_id}`, {
           method: "GET",
         })
@@ -171,16 +176,24 @@
       // Function to remove a product from the cart
       function removeFromCart(productId) {
         // Remove the item from the cart based on its ID
-        const cartId = localStorage.getItem("cartId");
-        fetch(`http://localhost:8080/api/cart/${cartId}/items/${productId}`, {
-          method: "DELETE",
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            console.log("Item removed from cart:", data);
-          });
-        cart = cart.filter((item) => item.id !== productId);
+        // const cartId = localStorage.getItem("cartId");
+        // fetch(`http://localhost:8080/api/cart/${cartId}/items/${productId}`, {
+        //   method: "DELETE",
+        // })
+        //   .then((response) => response.json())
+        //   .then((data) => {
+        //     console.log("Item removed from cart:", data);
+        //   });
+        console.log("removeFromCart product with id:", productId);
+        const cartData = localStorage.getItem("cart");
+        if (cartData) {
+          cart = JSON.parse(cartData);
+        }
+        console.log("before filter", cart);
+        cart = cart.filter((item) => item.product.id !== productId);
+        console.log("after filter", cart);
 
+        localStorage.setItem("cart", JSON.stringify(cart));
         // Re-render the cart to reflect changes
         renderCart();
       }

@@ -136,6 +136,7 @@
 
       // Add to cart with modal popup
       function addToCart(productId) {
+        console.log("Add to cart button clicked with id:", productId);
         selectedProduct = products.find((p) => p.id === productId);
         if (selectedProduct) {
           const modal = document.getElementById("quantity-modal");
@@ -157,16 +158,23 @@
           document.getElementById("modal-quantity-input").value,
           10
         );
+        console.log(
+          "Modal add to cart button clicked with quantity:",
+          quantity
+        );
         if (quantity && quantity > 0 && quantity <= selectedProduct.quantity) {
           let cart = JSON.parse(localStorage.getItem("cart")) || [];
           const existingProduct = cart.find(
-            (item) => item.product.id === selectedProduct.id
+            (item) => item.id === selectedProduct.id
           );
 
           if (existingProduct) {
+            console.log("cart found");
             existingProduct.quantity += quantity;
           } else {
-            cart.push({ product: selectedProduct, quantity });
+            console.log("cart not found");
+            cart.push({ product: selectedProduct });
+            cart[cart.length - 1].quantity = quantity;
           }
 
           localStorage.setItem("cart", JSON.stringify(cart));
@@ -184,9 +192,6 @@
           document.getElementById("quantity-modal").style.display = "none";
         }
       };
-
-      // Initial render of all products
-      //   renderProducts();
     </script>
   </body>
 </html>
