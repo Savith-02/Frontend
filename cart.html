@@ -61,9 +61,28 @@
         // fetch(`http://localhost:8080/api/cart/${user_id}/items`, {
         //   method: "GET",
         // })
+        const user_id = 1;
+        fetch(`http://localhost:8080/api/cart/userId/${user_id}`, {
+          method: "GET",
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            const cartId = data;
+            localStorage.setItem("cartId", cartId);
+          })
+          .catch((error) => {
+            console.error("Error fetching cart ID:", error);
+            alert("Failed to fetch cart ID. Please try again!");
+          });
+        if (!localStorage.getItem("cartId")) {
+          document.getElementById("checkout-button").disabled = true;
+          document.getElementById("checkout-button").style.backgroundColor =
+            "gray";
+          return;
+        }
         let cart = [];
         const cartData = localStorage.getItem("cart");
-        const user_id = localStorage.getItem("user_id");
+        // const user_id = localStorage.getItem("user_id");
         if (cartData) {
           // console.log("cartData", cartData);
           if (cartData) {
@@ -101,26 +120,25 @@
               "total-price"
             ).textContent = `Total: Rs. ${totalPrice.toFixed(2)}`;
           });
-        }
-        // else {
-        //   const user_id = 1;
-        //   fetch(`http://localhost:8080/api/cart/${user_id}/items`, {
-        //     method: "GET",
-        //   });
-        // }
-
-        fetch(`http://localhost:8080/api/cart/userId/${user_id}`, {
-          method: "GET",
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            const cartId = data;
-            localStorage.setItem("cartId", cartId);
+        } else {
+          const user_id = 1;
+          fetch(`http://localhost:8080/api/cart/${user_id}/items`, {
+            method: "GET",
           })
-          .catch((error) => {
-            console.error("Error fetching cart ID:", error);
-            alert("Failed to fetch cart ID. Please try again!");
-          });
+            .then((response) => response.json())
+            .then((data) => {
+              console.log("cart", data);
+              if (!data) {
+                console.error("No cart data found in backend.");
+                document.getElementById("cart-section").innerHTML =
+                  "<p>No items in cart.</p>";
+                return;
+              }
+              cart = data;
+              localStorage.setItem("cart", JSON.stringify(cart));
+              renderCart();
+            });
+        }
       }
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       function updateQuantity(cartId, productId) {
@@ -213,8 +231,22 @@
           renderCart(); // Re-render the cart
         });
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      // Initial render of the cart
       renderCart();
+
+      async function checkout() {
+        localStorage.removeItem("cart");
+        renderCart();
+        const cartId = localStorage.getItem("cartId");
+        fetch(`http://localhost:8080/api/cart/${cartId}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: localStorage.getItem("user_id"),
+          }),
+        });
+      }
     </script>
   </body>
 </html>
