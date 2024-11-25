@@ -70,6 +70,7 @@
 
     <script>
       let products = [];
+
       async function fetchProducts() {
         const response = await fetch(
           "http://localhost:8080/inventory/products"
@@ -115,7 +116,7 @@
           const row = document.createElement("tr");
           row.innerHTML = `
                     <td>${product.id}</td>
-                    <td>${product.name}</td>
+                    <td>${product.productName}</td>
                     <td>Rs.${product.price.toFixed(2)}</td>
                     <td>${product.quantity}</td>
                     <td>${product.category}</td>
@@ -138,11 +139,12 @@
       function addToCart(productId) {
         console.log("Add to cart button clicked with id:", productId);
         selectedProduct = products.find((p) => p.id === productId);
+        console.log("selectedProduct", selectedProduct);
         if (selectedProduct) {
           const modal = document.getElementById("quantity-modal");
           document.getElementById(
             "modal-product-name"
-          ).textContent = `Product: ${selectedProduct.name} (Available: ${selectedProduct.quantity})`;
+          ).textContent = `Product: ${selectedProduct.productName} (Available: ${selectedProduct.quantity})`;
           document.getElementById("modal-quantity-input").value = "";
           modal.style.display = "block";
         }
@@ -155,6 +157,10 @@
 
       document.getElementById("modal-add-to-cart-btn").onclick =
         async function () {
+          if (!selectedProduct) {
+            alert("No product selected!");
+            return;
+          }
           const quantity = parseInt(
             document.getElementById("modal-quantity-input").value,
             10
@@ -168,7 +174,9 @@
             quantity > 0 &&
             quantity <= selectedProduct.quantity
           ) {
+            console.log("quantity is valid");
             let cart = JSON.parse(localStorage.getItem("cart")) || [];
+            console.log("cart", cart);
             const existingProduct = cart.find(
               (item) => item.id === selectedProduct.id
             );
@@ -183,6 +191,7 @@
             }
             let cartId = localStorage.getItem("cartId");
             if (!cartId) {
+              console.log("sending request to create cart");
               // const userId = localStorage.getItem("user_id");
               const userId = 1;
               const response = await fetch(
@@ -192,6 +201,7 @@
                 }
               );
               cartId = await response.json();
+              console.log("cartId", cartId);
             }
 
             await fetch(`http://localhost:8080/api/cart/${cartId}/items`, {
@@ -200,12 +210,14 @@
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                productId: productId,
+                productId: selectedProduct.id,
                 quantity: quantity,
               }),
             });
             localStorage.setItem("cart", JSON.stringify(cart));
-            alert(`${quantity} of ${selectedProduct.name} added to your cart!`);
+            alert(
+              `${quantity} of ${selectedProduct.productName} added to your cart!`
+            );
             document.getElementById("quantity-modal").style.display = "none";
           } else {
             alert(
