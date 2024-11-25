@@ -28,12 +28,7 @@
       <!-- Category Filter Dropdown -->
       <section id="category-filter">
         <label for="category-select">Filter by Category:</label>
-        <select id="category-select">
-          <option value="all">All Categories</option>
-          <option value="Category A">Category A</option>
-          <option value="Category B">Category B</option>
-          <option value="Category C">Category C</option>
-        </select>
+        <select id="category-select"></select>
       </section>
 
       <!-- Product List Table -->
@@ -74,21 +69,33 @@
     </footer>
 
     <script>
-      // Sample product data (with categories)
       let products = [];
-      fetch("http://localhost:8080/api/products")
-        .then((response) => response.json())
-        .then((data) => {
-          products = data;
-        });
-      // const products = [
-      //     { id: 1, name: 'Product 1', price: 10.00, quantity: 100, category: 'Category A' },
-      //     { id: 2, name: 'Product 2', price: 15.00, quantity: 50, category: 'Category B' },
-      //     { id: 3, name: 'Product 3', price: 20.00, quantity: 200, category: 'Category A' },
-      //     { id: 4, name: 'Product 4', price: 25.00, quantity: 150, category: 'Category B' },
-      //     { id: 5, name: 'Product 5', price: 30.00, quantity: 80, category: 'Category C' },
-      //     { id: 6, name: 'Product 6', price: 35.00, quantity: 60, category: 'Category C' }
-      // ];
+      async function fetchProducts() {
+        const response = await fetch(
+          "http://localhost:8080/inventory/products"
+        );
+        const data = await response.json();
+        console.log(data);
+        products = data;
+
+        renderProducts();
+      }
+      fetchProducts();
+
+      async function fetchCategories() {
+        const response = await fetch(
+          "http://localhost:8080/inventory/products/categories"
+        );
+        const data = await response.json();
+        console.log(data);
+        const categorySelect = document.getElementById("category-select");
+        categorySelect.innerHTML =
+          "<option value='all'>All Categories</option>";
+        for (let i = 0; i < data.length; i++) {
+          categorySelect.innerHTML += `<option value="${data[i]}">${data[i]}</option>`;
+        }
+      }
+      fetchCategories();
 
       let selectedProduct = null; // To store the product being added
 
@@ -103,7 +110,7 @@
           categoryFilter === "all"
             ? products
             : products.filter((product) => product.category === categoryFilter);
-
+        console.log("filteredProducts", filteredProducts);
         filteredProducts.forEach((product) => {
           const row = document.createElement("tr");
           row.innerHTML = `
@@ -179,7 +186,7 @@
       };
 
       // Initial render of all products
-      renderProducts();
+      //   renderProducts();
     </script>
   </body>
 </html>
