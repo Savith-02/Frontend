@@ -177,17 +177,25 @@
             console.log("quantity is valid");
             let cart = JSON.parse(localStorage.getItem("cart")) || [];
             console.log("cart", cart);
-            const existingProduct = cart.find(
-              (item) => item.id === selectedProduct.id
-            );
+            const existingProduct = cart.find((item) => {
+              console.log("item", item);
+              console.log("item.product.id", item.product.id);
+              console.log("selectedProduct.id", selectedProduct.id);
+              return item.product.id === selectedProduct.id;
+            });
 
             if (existingProduct) {
-              console.log("cart found");
+              console.log("product found in cart");
               existingProduct.quantity += quantity;
             } else {
-              console.log("cart not found");
-              cart.push({ product: selectedProduct });
-              cart[cart.length - 1].quantity = quantity;
+              console.log("product not found in cart");
+              cart.push({
+                product: {
+                  ...selectedProduct,
+                  quantity: selectedProduct.quantity - quantity,
+                },
+                quantity: quantity,
+              });
             }
             let cartId = localStorage.getItem("cartId");
             if (!cartId) {
